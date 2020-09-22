@@ -1,0 +1,25 @@
+﻿<Page x:Class="referenceUSASearch.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:referenceUSASearch"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="MainPage">
+
+    <Grid Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        
+        <Button x:Name="btnUploadLastNames" Content="Upload Last Names" Grid.Row="0" Grid.Column="0" Click="btnUploadLastNames_Click" Margin="10"/>
+        <Button x:Name="btnUploadZipCodes" Content="Upload Zip Codes" Grid.Row="1" Grid.Column="0" Click="btnUploadZipCodes_Click" Margin="10"/>
+        <Button x:Name="btnSubmit" Content="Submit" Grid.Row="2" Grid.Column="0" Click="btnSubmit_Click" Margin="10"/>
+    </Grid>
+</Page>
