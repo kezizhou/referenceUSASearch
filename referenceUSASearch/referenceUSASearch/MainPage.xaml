@@ -20,14 +20,14 @@
 
         <StackPanel Grid.Row="0" Grid.Column="0" Margin="10">
             <Label HorizontalAlignment="Center" FontSize="17">Library ID:</Label>
-            <TextBox x:Name="txtLibraryID" Margin="10,0,10,0" Padding="5"/>
-            <Label HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
+            <TextBox x:Name="txtLibraryID" Margin="10,0,10,0" Padding="5" VerticalContentAlignment="Center"/>
+            <Label x:Name="lblLibraryIDReq" HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
 
             <Label HorizontalAlignment="Center" FontSize="17">Pin</Label>
-            <PasswordBox x:Name="txtLibraryPin" Margin="10,0,10,0" Padding="5"/>
-            <Label HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
+            <PasswordBox x:Name="txtLibraryPin" Margin="10,0,10,0" Padding="5" VerticalContentAlignment="Center"/>
+            <Label x:Name="lblLibraryPinReq" HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
 
-            <StackPanel Height="21" Orientation="Horizontal" x:Name="stkPanel1" HorizontalAlignment="Center">
+            <StackPanel Height="21" Orientation="Horizontal" x:Name="stkPanel1" HorizontalAlignment="Center" Margin="5">
                 <Viewbox Height="{Binding Path=ActualHeight, ElementName=stkPanel1}">
                     <CheckBox x:Name="chkSaveCred">Save Credentials</CheckBox>
                 </Viewbox>
@@ -35,17 +35,19 @@
         </StackPanel>
 
         <StackPanel Grid.Row="0" Grid.Column="1" Margin="10" VerticalAlignment="Center">
-            <TextBlock FontSize="17">Last Names File</TextBlock>
+            <TextBlock FontSize="17" HorizontalAlignment="Center">Last Names File</TextBlock>
             <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="txtLastNameFile" Margin="10,10,0,10" Width="290" IsReadOnly="True"/>
+                <TextBox x:Name="txtLastNameFile" Margin="10,10,0,10" Width="290" IsReadOnly="True" VerticalContentAlignment="Center"/>
                 <Button x:Name="btnUploadLastNames" Content="Browse" Click="btnUploadLastNames_Click" Margin="10" Padding="5"/>
             </StackPanel>
+            <Label x:Name="lblLastNamesReq" HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
 
-            <TextBlock FontSize="17">Zip Codes File</TextBlock>
+            <TextBlock FontSize="17" HorizontalAlignment="Center">Zip Codes File</TextBlock>
             <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="txtZipCodeFile" Margin="10,10,0,10" Width="290" IsReadOnly="True"/>
+                <TextBox x:Name="txtZipCodeFile" Margin="10,10,0,10" Width="290" IsReadOnly="True" VerticalContentAlignment="Center"/>
                 <Button x:Name="btnUploadZipCodes" Content="Browse" Click="btnUploadZipCodes_Click" Margin="10" Padding="5"/>
             </StackPanel>
+            <Label x:Name="lblZipCodesReq" HorizontalAlignment="Center" Foreground="red" Visibility="Hidden">Required</Label>
             <Button x:Name="btnSubmit" Content="Search" Grid.Row="3" FontSize="17" Click="btnSubmit_Click" Margin="10" Padding="10"/>
         </StackPanel>
 

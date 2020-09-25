@@ -43,14 +43,16 @@ namespace referenceUSASearch {
 		}
 
 		private void btnSubmit_Click(object sender, RoutedEventArgs e) {
+			if (Validate() == false) {
+				return;
+			}
+
 			Thread t = new Thread(() => buttonThread());
 			t.Start();
 		}
 
 		private void buttonThread() {
 			try {
-				Validate();
-
 				NativeMethods.SetThreadExecutionState(NativeMethods.ES_CONTINUOUS | NativeMethods.ES_SYSTEM_REQUIRED);
 
 				dt = new DataTable();
@@ -58,6 +60,7 @@ namespace referenceUSASearch {
 				startDriverLogin();
 
 				// First search, fill in all search filters
+				writeLog("Reference USA loaded, setting search filters.");
 				initialSearchFilters();
 				Wait(2);
 
@@ -113,12 +116,43 @@ namespace referenceUSASearch {
 			}
 		}
 
-		private void Validate() {
+		private bool Validate() {
+			bool blnValidated = false;
 
-			if (chkSaveCred.IsChecked == true) {
-				Properties.Settings.Default.LibraryID = txtLibraryID.Text;
-				Properties.Settings.Default.LibraryPin = txtLibraryPin.Password;
+			if (txtLibraryID.Text != "" && txtLibraryPin.Password != "" && txtLastNameFile.Text != "" && txtZipCodeFile.Text != "") {
+				blnValidated = true;
+
+				if (chkSaveCred.IsChecked == true) {
+					Properties.Settings.Default.LibraryID = txtLibraryID.Text;
+					Properties.Settings.Default.LibraryPin = txtLibraryPin.Password;
+				}
+			} else {
+				if (txtLibraryID.Text == "") {
+					lblLibraryIDReq.Visibility = Visibility.Visible;
+				} else {
+					lblLibraryPinReq.Visibility = Visibility.Hidden;
+				}
+
+				if (txtLibraryPin.Password == "") {
+					lblLibraryPinReq.Visibility = Visibility.Visible;
+				} else {
+					lblLibraryPinReq.Visibility = Visibility.Hidden;
+				}
+
+				if (txtLastNameFile.Text == "") {
+					lblLastNamesReq.Visibility = Visibility.Visible;
+				} else {
+					lblLastNamesReq.Visibility = Visibility.Hidden;
+				}
+
+				if (txtZipCodeFile.Text == "") {
+					lblZipCodesReq.Visibility = Visibility.Visible;
+				} else {
+					lblZipCodesReq.Visibility = Visibility.Hidden;
+				}
 			}
+
+			return blnValidated;
 		}
 
 		private void writeLog(string strString) {
@@ -267,6 +301,8 @@ namespace referenceUSASearch {
 		}
 
 		private void startDriverLogin() {
+			writeLog("Starting driver...");
+
 			ChromeOptions options = new ChromeOptions();
 
 			// Do not show chrome window
@@ -295,6 +331,7 @@ namespace referenceUSASearch {
 			wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
 
 			// Login
+			writeLog("Logging into library account...");
 			IWebElement libraryCard = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userName']")));
 			libraryCard.SendKeys(Properties.Settings.Default.LibraryID);
 
