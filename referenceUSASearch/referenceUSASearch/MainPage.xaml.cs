@@ -6,9 +6,12 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,53 +32,40 @@ namespace referenceUSASearch {
 			InitializeComponent();
 		}
 
+		private void Page_Loaded(object sender, RoutedEventArgs e) {
+			if (Properties.Settings.Default.LibraryID != null) {
+				txtLibraryID.Text = Properties.Settings.Default.LibraryID;
+			}
+
+			if (Properties.Settings.Default.LibraryPin != null) {
+				txtLibraryPin.Password = Properties.Settings.Default.LibraryPin;
+			}
+		}
+
 		private void btnSubmit_Click(object sender, RoutedEventArgs e) {
+			Thread t = new Thread(() => buttonThread());
+			t.Start();
+		}
+
+		private void buttonThread() {
 			try {
+				Validate();
+
+				NativeMethods.SetThreadExecutionState(NativeMethods.ES_CONTINUOUS | NativeMethods.ES_SYSTEM_REQUIRED);
+
+				dt = new DataTable();
+
 				startDriverLogin();
+
+				// First search, fill in all search filters
+				initialSearchFilters();
+				Wait(2);
 
 				// Loop through last names
 				for (int i = 0; i < lstLastNames.Count; i++) {
-					// First search, fill in all search filters
-					if (i == 0) {
-						initialSearchFilters();
-					}
+					writeLog("Searching for: " + lstLastNames[i] + "\n");
 
-					Wait(2);
-
-					// Last name
-					IWebElement lastName;
-					try {
-						lastName = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='LastName']")));
-					} catch (WebDriverTimeoutException) {
-						// Name checkbox was cleared
-						IWebElement nameCheckbox = driver.FindElement(By.XPath("//*[@id='cs-Name']"));
-						if (!nameCheckbox.Selected) {
-							nameCheckbox.Click();
-						}
-
-						lastName = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='LastName']")));
-					}
-					lastName.Clear();
-					lastName.SendKeys(lstLastNames[i]);
-					Wait(2);
-
-					// One contact per household
-					IWebElement oneContact;
-					try {
-						oneContact = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='primaryContacts']")));
-					} catch (WebDriverTimeoutException) {
-						// Contacts per household checkbox was cleared
-						IWebElement contactsCheckbox = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='cs-ContactsPerHousehold']")));
-						oneContact = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='primaryContacts']")));
-					}
-					if (!oneContact.Selected) {
-						oneContact.Click();
-					}
-					Wait(2);
-
-					// Search button
-					IWebElement search = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='dbSelector']/div/div[2]/div[1]/div[3]/div/a[1]")));
-					search.Click();
+					searchLastName(lstLastNames[i]);
 
 					// Checks if no results pop up window found
 					try {
@@ -85,20 +75,112 @@ namespace referenceUSASearch {
 						noResultsPopup.Click();
 
 					} catch (NoSuchElementException) {
-						nextPageResults();
+						if (nextPageResults() == false) {
+							// If search fails, try again
+							if (!searchLastName(lstLastNames[i])) {
+								// Error occured, redo last search
+								i -= 1;
+								searchLastName(lstLastNames[i]);
+							}
+						}
 
 						// Revise search
 						IWebElement reviseSearch = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='dbSelector']/div/div[2]/div[1]/ul[2]/li[1]/a")));
 						reviseSearch.Click();
-						wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='cs-ContactsPerHousehold']")));
+						try {
+							wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='cs-ContactsPerHousehold']")));
+						} catch (Exception ex) {
+							driver.Navigate().Refresh();
+						}
 					}
 				}
 
 				exportToCSV(dt);
 
+				MessageBox.Show("Search complete.");
+
 			} catch (Exception ex) {
-				MessageBox.Show(ex.ToString());
+				if (driver != null) {
+					driver.Quit();
+					exportToCSV(dt);
+					writeLog("The following error occured while processing. However, the current data file up to this point has been saved to your destination.\n\n");
+				} else {
+					writeLog("The following error occured while processing.\n\n");
+				}
+
+				writeLog(ex.ToString());
+				NativeMethods.SetThreadExecutionState(NativeMethods.ES_CONTINUOUS);
 			}
+		}
+
+		private void Validate() {
+
+			if (chkSaveCred.IsChecked == true) {
+				Properties.Settings.Default.LibraryID = txtLibraryID.Text;
+				Properties.Settings.Default.LibraryPin = txtLibraryPin.Password;
+			}
+		}
+
+		private void writeLog(string strString) {
+			if (!Dispatcher.CheckAccess()) {
+				Dispatcher.Invoke(() => { 
+					txtLog.Text += strString;
+					txtLog.ScrollToEnd();
+				});
+			}
+		}
+
+		private bool searchLastName(string strLastName) {
+			// Last name
+			IWebElement lastName;
+			try {
+				lastName = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='LastName']")));
+			} catch (WebDriverTimeoutException) {
+				// Name checkbox was cleared
+				try {
+					IWebElement nameCheckbox = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='cs-Name']")));
+					if (!nameCheckbox.Selected) {
+						nameCheckbox.Click();
+					}
+				} catch (WebDriverTimeoutException) {
+					writeLog("Error, restarting driver. (This sometimes occurs when requests are throttled.) Please double check if a last name was missed or duplicated. \n\n");
+
+					// Try to restart driver
+					driver.Quit();
+					startDriverLogin();
+
+					// First search, fill in all search filters
+					initialSearchFilters();
+					Wait(2);
+
+					return false;
+				}
+
+				lastName = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='LastName']")));
+			}
+			lastName.Clear();
+			lastName.SendKeys(strLastName);
+			Wait(2);
+
+			// One contact per household
+			IWebElement oneContact;
+			try {
+				oneContact = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='primaryContacts']")));
+			} catch (WebDriverTimeoutException) {
+				// Contacts per household checkbox was cleared
+				IWebElement contactsCheckbox = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='cs-ContactsPerHousehold']")));
+				oneContact = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='primaryContacts']")));
+			}
+			if (!oneContact.Selected) {
+				oneContact.Click();
+			}
+			Wait(2);
+
+			// Search button
+			IWebElement search = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='dbSelector']/div/div[2]/div[1]/div[3]/div/a[1]")));
+			search.Click();
+
+			return true;
 		}
 
 		private void btnUploadLastNames_Click(object sender, RoutedEventArgs e) {
@@ -113,8 +195,11 @@ namespace referenceUSASearch {
 							lstLastNames.Add(line.Trim());
 						}
 					}
+
+					txtLastNameFile.Text = openFile.FileName;
 				} catch (Exception ex) {
-					MessageBox.Show(ex.ToString());
+					writeLog("The following error occured while processing your request. Please try again.\n\n");
+					writeLog(ex.ToString() + "\n\n");
 				}
 			}
 		}
@@ -131,8 +216,11 @@ namespace referenceUSASearch {
 							lstZipCodes.Add(line.Trim());
 						}
 					}
+
+					txtZipCodeFile.Text = openFile.FileName;
 				} catch (Exception ex) {
-					MessageBox.Show(ex.ToString());
+					writeLog("The following error occured while processing your request. Please try again.\n\n");
+					writeLog(ex.ToString() + "\n\n");
 				}
 			}
 		}
@@ -179,33 +267,45 @@ namespace referenceUSASearch {
 		}
 
 		private void startDriverLogin() {
-			driver = new ChromeDriver("Resources");
+			ChromeOptions options = new ChromeOptions();
+
+			// Do not show chrome window
+			options.AddArgument("headless");
+
+			// Hide logging window
+			ChromeDriverService service = ChromeDriverService.CreateDefaultService("Resources");
+			service.SuppressInitialDiagnosticInformation = true;
+			service.HideCommandPromptWindow = true;
+
+			driver = new ChromeDriver(service, options);
 
 			// Data table
-			dt.Columns.Add("First Name");
-			dt.Columns.Add("Last Name");
-			dt.Columns.Add("Street Address");
-			dt.Columns.Add("City State");
-			dt.Columns.Add("Zip");
-			dt.Columns.Add("Phone");
+			DataColumnCollection columns = dt.Columns;
+			if (!columns.Contains("First Name")) {
+				dt.Columns.Add("First Name");
+				dt.Columns.Add("Last Name");
+				dt.Columns.Add("Street Address");
+				dt.Columns.Add("City State");
+				dt.Columns.Add("Zip");
+				dt.Columns.Add("Phone");
+			}
 
 			driver.Manage().Window.Maximize();
 			driver.Url = "http://www.referenceusa.com.ezproxy.kentonlibrary.org/UsConsumer/Search/Custom/2a1f8fddfb9d46308739d7fe382c5910";
+			wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
 
 			// Login
-			IWebElement libraryCard = driver.FindElement(By.XPath("//*[@id='userName']"));
-			libraryCard.SendKeys("23126001684261");
+			IWebElement libraryCard = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userName']")));
+			libraryCard.SendKeys(Properties.Settings.Default.LibraryID);
 
-			IWebElement pin = driver.FindElement(By.XPath("//*[@id='password_form']"));
-			pin.SendKeys("0102");
+			IWebElement pin = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='password_form']")));
+			pin.SendKeys(Properties.Settings.Default.LibraryPin);
 
-			IWebElement libraryLogin = driver.FindElement(By.XPath("/html/body/div/div[3]/form/div[3]/div[2]/button"));
+			IWebElement libraryLogin = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("/html/body/div/div[3]/form/div[3]/div[2]/button")));
 			libraryLogin.Click();
 
 			// Switch to new tab
 			driver.SwitchTo().Window(driver.WindowHandles.Last());
-
-			wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
 		}
 
 		private void initialSearchFilters() {
@@ -215,7 +315,7 @@ namespace referenceUSASearch {
 			Wait(2);
 
 			// Name checkbox
-			IWebElement nameCheckbox = driver.FindElement(By.XPath("//*[@id='cs-Name']"));
+			IWebElement nameCheckbox = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='cs-Name']")));
 			if (!nameCheckbox.Selected) {
 				nameCheckbox.Click();
 			}
@@ -258,17 +358,36 @@ namespace referenceUSASearch {
 			}
 		}
 
-		private void nextPageResults() {
+		private bool nextPageResults() {
 			// Check for next page
-			string strResultCount = driver.FindElement(By.XPath("//*[@id='dbSelector']/div/div[2]/div[1]/ul[1]/li[1]/span")).GetAttribute("innerText");
-			int intResultCount = int.Parse(strResultCount, NumberStyles.AllowThousands);
+			string strResultCount = "";
+			int intResultCount = 0;
+			bool blnResult = false;
+			while (blnResult == false) {
+				try {
+					strResultCount = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='dbSelector']/div/div[2]/div[1]/ul[1]/li[1]/span"))).GetAttribute("innerText");
+				} catch (Exception ex) {
+					driver.Navigate().Refresh();
+					return false;
+				}
+				blnResult = int.TryParse(strResultCount, NumberStyles.AllowThousands, CultureInfo.CurrentCulture.NumberFormat, out intResultCount);
+			}
+
+			writeLog(intResultCount + " records found.\n\n");
+
 			// Round up to get number of pages
 			int intPages = (intResultCount + 25 - 1) / 25;
 			int count = 1;
 			while (count <= intPages) {
 
 				// Results found, add to datatable
-				string strHtmlSource = driver.FindElement(By.XPath("//*[@id='tblResults']")).GetAttribute("outerHTML");
+				string strHtmlSource = "";
+				try {
+					strHtmlSource = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='tblResults']"))).GetAttribute("outerHTML");
+				} catch (WebDriverException) {
+					driver.Navigate().Refresh();
+					strHtmlSource = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='tblResults']"))).GetAttribute("outerHTML");
+				}
 
 				HtmlDocument htmlDoc = new HtmlDocument();
 				htmlDoc.LoadHtml(strHtmlSource);
@@ -286,11 +405,21 @@ namespace referenceUSASearch {
 
 				// Not on last page
 				if (count <= intPages) {
-					IWebElement nextPage = driver.FindElement(By.XPath("//*[@id='searchResults']/div[1]/div/div[1]/div[2]/div[3]"));
+					IWebElement nextPage = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id='searchResults']/div[1]/div/div[1]/div[2]/div[3]")));
 					nextPage.Click();
-					wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='tblResults']")));
+					Wait(1);
 				}
 			}
+
+			return true;
 		}
+	}
+
+	internal static class NativeMethods {
+		// Import SetThreadExecutionState Win32 API and necessary flags
+		[DllImport("kernel32.dll")]
+		public static extern uint SetThreadExecutionState(uint esFlags);
+		public const uint ES_CONTINUOUS = 0x80000000;
+		public const uint ES_SYSTEM_REQUIRED = 0x00000001;
 	}
 }
