@@ -1,2 +1,2 @@
 # referenceUSASearch
-Tool to use Reference USA database to search for addresses
+Tool using Selenium to search Reference USA database
