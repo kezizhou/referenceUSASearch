@@ -151,6 +151,7 @@ namespace referenceUSASearch
 				{
 					Properties.Settings.Default.LibraryID = txtLibraryID.Text;
 					Properties.Settings.Default.LibraryPin = txtLibraryPin.Password;
+					Properties.Settings.Default.Save();
 				}
 			}
 			else
