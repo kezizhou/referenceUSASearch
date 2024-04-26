@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "1ZlbsIUbJmm2gUV4UvBzOrg2yxGz24cvHp4R/JpfQEAM1UOAyQxNcCr3K9H23gTtZxUBEQW1auNgavyynq/qHg==",
+  "dgSpecHash": "EXg3rmm/J0nJ+DCIffJ7CLer11/My9sMy4ezf/QwhO48Z5DEgzoG6lrIMv1eavXJU7Sf8b9qXbnmQ3rymH0eZQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\cooki\\Documents\\Git-Repos\\referenceUSASearch\\referenceUSASearch\\referenceUSASearch\\referenceUSASearch.csproj",
   "expectedPackageFiles": [
@@ -90,7 +90,8 @@
     "C:\\Users\\cooki\\.nuget\\packages\\system.threading.timer\\4.3.0\\system.threading.timer.4.3.0.nupkg.sha512",
     "C:\\Users\\cooki\\.nuget\\packages\\system.xml.readerwriter\\4.3.0\\system.xml.readerwriter.4.3.0.nupkg.sha512",
     "C:\\Users\\cooki\\.nuget\\packages\\system.xml.xdocument\\4.3.0\\system.xml.xdocument.4.3.0.nupkg.sha512",
-    "C:\\Users\\cooki\\.nuget\\packages\\system.xml.xmldocument\\4.3.0\\system.xml.xmldocument.4.3.0.nupkg.sha512"
+    "C:\\Users\\cooki\\.nuget\\packages\\system.xml.xmldocument\\4.3.0\\system.xml.xmldocument.4.3.0.nupkg.sha512",
+    "C:\\Users\\cooki\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.32\\microsoft.netcore.app.host.win-x64.3.1.32.nupkg.sha512"
   ],
   "logs": []
 }

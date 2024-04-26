@@ -11,15 +11,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
-    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Resources\chromedriver.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,3 @@
-C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\referenceUSASearch.csprojAssemblyReference.cache
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\MainPage.g.cs
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\MainWindow.g.cs
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\App.g.cs
@@ -26,3 +25,5 @@ C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referen
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\referenceUSASearch_Content.g.cs
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\bin\Debug\netcoreapp3.1\SeleniumExtras.WaitHelpers.dll
 C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\bin\Debug\netcoreapp3.1\HtmlAgilityPack.dll
+C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\referenceUSASearch.csproj.AssemblyReference.cache
+C:\Users\cooki\Documents\Git-Repos\referenceUSASearch\referenceUSASearch\referenceUSASearch\obj\Debug\netcoreapp3.1\referenceUSASearch.GeneratedMSBuildEditorConfig.editorconfig

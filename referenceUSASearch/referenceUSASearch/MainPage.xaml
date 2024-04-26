@@ -29,7 +29,7 @@
 
             <StackPanel Height="21" Orientation="Horizontal" x:Name="stkPanel1" HorizontalAlignment="Center" Margin="5">
                 <Viewbox Height="{Binding Path=ActualHeight, ElementName=stkPanel1}">
-                    <CheckBox x:Name="chkSaveCred">Save Credentials</CheckBox>
+                    <CheckBox x:Name="chkSaveCred" IsChecked="True">Save Credentials</CheckBox>
                 </Viewbox>
             </StackPanel>
         </StackPanel>
